@@ -67,8 +67,8 @@ opt1D.mTotal0 = mTotal0;
 opt1D.mx = mx;
 opt1D.mxx = mxx;
 
-opt1D.Npole = 60;
-opt1D.NchebNodes = 8;
+opt1D.Npole = 30;
+opt1D.NchebNodes = 4;
 opt1D.tau = 1e-8;
 opt1D.requiredeps = 1e-6;
 opt1D.MTeter = teter1(opt1D.GptGrid,opt1D.NsGrid);
