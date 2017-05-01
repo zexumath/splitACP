@@ -92,8 +92,13 @@ bx = bx* fac;
 % bx1  = -real(ifft(1i*difftmp*fft(b)));
 bxx = real(ifft(-1*difftmp.^2*fft(b)));
 
-opt1D.nlpp = b;
-opt1D.nlppx = bx;
+
+indzero = find(abs(b)<1e-8);
+b(indzero) = 0;
+bx(indzero) = 0;
+
+opt1D.nlpp = sparse(b);
+opt1D.nlppx = sparse(bx);
 opt1D.nlppxx = bxx;
 
 end

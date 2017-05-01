@@ -97,11 +97,11 @@ FD = [];
 DFPT = [];
 ACP = [];
 for Natom = 4:2:12
-    resfilename = sprintf('./result041817/metal1Datom%d.mat',Natom);
+    resfilename = sprintf('../res/res0430/metal1Datom%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
-    DFPT(end+1) = DFPTtime.constructDiag;
-    ACP(end+1) = sACPtime.integral;
+    DFPT(end+1) = DFPTtime.total;
+    ACP(end+1) = sACPtime.total;
 end
 
 Natom = 4:2:12;

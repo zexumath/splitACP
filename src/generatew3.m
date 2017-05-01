@@ -28,7 +28,7 @@ if nargout ==2
         Wmat2(:,:,nu) = 1/(2i) * (Wmat2(:,:,nu) - Wmat2(:,:,nu)');
         W(:,nu) = real(diag(Wmat1(:,:,nu)) + diag(Wmat2(:,:,nu)) + diag(conj(Wmat2(:,:,nu))));
     end
-    Wmat = Wmat1 + Wmat2 + conj(Wmat2);
+    Wmat = real(Wmat1 + Wmat2 + conj(Wmat2));
 
 elseif nargout ==1
     W1  = zeros(NsGrid,select);

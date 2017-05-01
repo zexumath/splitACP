@@ -1,6 +1,6 @@
 % This script test on if chi_0 matches FD and ACP with nlpp term
 if(1)
-    opt1D = initOptnlpp4m();
+%     opt1D = initOptnlpp4m();
     atom = opt1D.atom;
     hs = opt1D.hs;
     Ls = opt1D.Ls;
@@ -87,7 +87,7 @@ if(1)
             - bx(:,i) * (b(:,i)'*x)*hs;
     
     %% compute drhodRbCSr
-    [RHSsel,sel, drhodRbACPr, CHI0gCStmp, W, PI,sACPtime,pivot,indrand,rphase,eqnres,dpsib] = ...
+    [RHSselb,selb, drhodRbACPr, CHI0gCStmp, W, PI,sACPtime,pivot,indrand,rphase,eqnres,dpsib] = ...
         compresschi01Dtest(opt1D,gpfunc,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,sACPtime);
     
     sACPtime.regular = toc(ACPstart);
@@ -128,7 +128,8 @@ if(1)
             - b(mu,i) * (bx(:,i)'*x)*hs...
             - bx(mu,i) * (b(:,i)'*x)*hs;
     
-    [drhodRbACPs] = generatew2(opt1D,VNew,DNew,Nocc,zshift,zweight,gpfunc1,RHSsel,sel);
+    [drhodRbACPs] = generatew2(opt1D,VNew,DNew,Nocc,zshift,zweight,gpfunc1,RHSselb,selb);
+    selectb = length(selb);
     %
     
     sACPtime.singular = toc(singularstart);
@@ -205,13 +206,52 @@ if(1)
         end
     end
     
+    testdPACPs = zeros(NsGrid,NsGrid,NsCell);
+    
     Vcg = cal_hartree1D(drhodRACP, opt1D);
-%     [Ws, Wmat] = generatew(opt1D,VNew,DNew,zshift,zweight,RHSsel,sel);
-%     for J = 1:NsCell
-%         for nu = 1:select
-%             testdPACPs(:,:,J) = testdPACPs(:,:,J) + Wmat(:,:,nu) * Vcg(sel(nu),J);
-%         end
-%     end
+    [~, Wmatb] = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSselb,selb);
+    [~, Wmat ] = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSsel ,sel );
+    
+    for J = 1:NsCell
+        for nu = 1:selectb
+            testdPACPs(:,:,J) = testdPACPs(:,:,J) ...
+                + Wmatb(:,:,nu) * gp(selb(nu),J);
+            
+           if(b(selb(nu),J)~=0)
+               dPdRACPb1  = zeros(NsGrid,NsGrid);
+               dPdRACPb2  = zeros(NsGrid,NsGrid);
+           
+
+                       for l = 1:Npole
+                           zeta1 = VNew(:,1:Nocc) * ((DNew(1:Nocc) - zshift(l)).\ (VNew(:,1:Nocc)'*RHSselb(:,nu)* hs));
+                           zeta2 = VNew(:,Nocc+1:Ntot) * ((DNew(Nocc+1:Ntot) - zshift(l)).\ (VNew(:,Nocc+1:Ntot)'*RHSselb(:,nu)* hs));
+                           for i = 1:Nocc
+                               fac = (-1)*(b(selb(nu),J)*bxV(J,i) + bx(selb(nu),J)*bV(J,i)) * zweight(l)...
+                                   / (zshift(l) - DNew(i));
+                               dPdRACPb1 = dPdRACPb1 + ...
+                                   ( zeta1*VNew(:,i)') * fac;
+                               dPdRACPb2 = dPdRACPb2 + ...
+                                   ( zeta2*VNew(:,i)') * fac;
+                           end
+                       end
+                   
+                   dPdRACPb1 = 1/(2i)* (dPdRACPb1 - dPdRACPb1');
+                   dPdRACPb2 = 1/(2i)* (dPdRACPb2 - dPdRACPb2');
+               
+               testdPACPs(:,:,J) = testdPACPs(:,:,J)+...
+                   real(dPdRACPb1 + dPdRACPb2 + (dPdRACPb2)');
+           end
+        end
+    end
+    
+    
+    
+    for J = 1:NsCell
+        for nu = 1:select
+            testdPACPs(:,:,J) = testdPACPs(:,:,J) ...
+                + Wmat(:,:,nu) * Vcg(sel(nu),J);    
+        end
+    end
     
     
     
@@ -222,7 +262,7 @@ end
 if(1)
     tic
     
-    testdPACP = testdPACPr; % singular part dealt directly
+    testdPACP = testdPACPr + testdPACPs;
     HessACP = zeros(NsCell,NsCell);
     for I = 1:NsCell
         for J = 1:NsCell
@@ -233,9 +273,9 @@ if(1)
                 
 %             end
             HessACP(I,J) = HessACP(I,J)...
-                    + 2*(-1)* hs^2 * sum(sum(bx(:,I)' * testdPACP(:,:,J) * b(:,I)));
-            HessACP(I,J) = HessACP(I,J)...
-                    + (-1) * getdbPb(opt1D,bV,bxV,I,J,DNew,VNew,zshift,zweight,Vcg,gpfunc);
+                    + 2*(-1)* hs^2 * sum(sum(bx(:,I)' * (testdPACP(:,:,J) * b(:,I))));
+%             HessACP(I,J) = HessACP(I,J)...
+%                     + (-1) * getdbPb(opt1D,bV,bxV,I,J,DNew,VNew,zshift,zweight,Vcg,gpfunc);
         end
         HessACP(I,I) = HessACP(I,I) + sum(rhoNew.*gpxx(:,I)) * hs;
         for i = 1:Nocc

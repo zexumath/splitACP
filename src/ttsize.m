@@ -8,7 +8,7 @@ for Natom = 4:2:12
     metaltest2;
     metaltest3;
     metaltest4;
-    resfilename = sprintf('./result041817/metal1Datom%d.mat',atom.NsCell);
+    resfilename = sprintf('../res/res0430/metal1Datom%d.mat',atom.NsCell);
     
     eigFD   = eig(HessFD);
     eigDFPT = eig(HessDFPT);
@@ -17,7 +17,7 @@ for Natom = 4:2:12
     errorFD  = zeros(opt1D.atom.NsCell,3);
     errorACP = zeros(opt1D.atom.NsCell,3);
     for I = 1:opt1D.atom.NsCell
-        errFD(I,2)    = norm((rhoPerturbNew(:,I) - rho)/delta - drhodR(:,I));
+        errorFD(I,2)    = norm((rhoPerturbNew(:,I) - rho)/delta - drhodR(:,I));
         errorACP(I,1) = norm(drhodRbACP(:,I) - drhodRb(:,I));
         errorACP(I,2) = norm(drhodRACP(:,I)  - drhodR(:,I));
     end

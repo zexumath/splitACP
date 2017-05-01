@@ -1,4 +1,4 @@
-function [drhodRACPb, drhodRACPb1, drhodRACPb2] = generatew2(opt1D,VNew,DNew,Nocc,zshift,zweight,gpfunc1,RHSsel,sel)
+function [drhodRACPb, dPdRACPb] = generatew2(opt1D,VNew,DNew,Nocc,zshift,zweight,gpfunc1,RHSsel,sel)
 
 Npole   = opt1D.Npole;
 hs      = opt1D.hs;
@@ -7,7 +7,7 @@ NsGrid  = opt1D.NsGrid;
 NsCell  = opt1D.atom.NsCell;
 Ntot    = length(DNew);
 
-if(0)
+if(nargout==2)
     dPdRACPb1  = zeros(NsGrid,NsGrid,NsCell);
     dPdRACPb2  = zeros(NsGrid,NsGrid,NsCell);
     for j = 1:NsCell
