@@ -100,8 +100,8 @@ for Natom = 4:2:12
     resfilename = sprintf('../res/res0430/metal1Datom%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
-    DFPT(end+1) = DFPTtime.total;
-    ACP(end+1) = sACPtime.total;
+    DFPT(end+1) = DFPTtime.response;
+    ACP(end+1) = sACPtime.integral;
 end
 
 Natom = 4:2:12;

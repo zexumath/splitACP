@@ -1,4 +1,4 @@
-function [drhodRACPb, dPdRACPb] = generatew2(opt1D,VNew,DNew,Nocc,zshift,zweight,gpfunc1,RHSsel,sel)
+function [drhodRACPb, dPdRACPb] = generatew2(opt1D,bV,bxV,VNew,DNew,Nocc,zshift,zweight,gp,zetatilde,sel)
 
 Npole   = opt1D.Npole;
 hs      = opt1D.hs;
@@ -7,17 +7,21 @@ NsGrid  = opt1D.NsGrid;
 NsCell  = opt1D.atom.NsCell;
 Ntot    = length(DNew);
 
+b       = opt1D.nlpp;
+bx      = opt1D.nlppx;
+
 if(nargout==2)
     dPdRACPb1  = zeros(NsGrid,NsGrid,NsCell);
     dPdRACPb2  = zeros(NsGrid,NsGrid,NsCell);
     for j = 1:NsCell
         for nu = 1:select
             for l = 1:Npole
-                zeta1 = VNew(:,1:Nocc) * ((DNew(1:Nocc) - zshift(l)).\ (VNew(:,1:Nocc)'*RHSsel(:,nu)* hs));
-                zeta2 = VNew(:,Nocc+1:Ntot) * ((DNew(Nocc+1:Ntot) - zshift(l)).\ (VNew(:,Nocc+1:Ntot)'*RHSsel(:,nu)* hs));
+                zeta1 = VNew(:,1:Nocc) * zetatilde(1:Nocc,l,nu);
+                zeta2 = VNew(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,l,nu);
                 for i = 1:Nocc
-                    fac = gpfunc1(VNew(:,i),j,sel(nu)) * zweight(l)...
-                        / (zshift(l) - DNew(i));
+                    fac = (VNew(sel(nu),i).*gp(sel(nu),j) ...
+                        +(-1)*b(sel(nu),j)*bxV(j,i) + (-1)*bx(sel(nu),j)*bV(j,i))...
+                        * zweight(l)/ (zshift(l) - DNew(i));
                     dPdRACPb1(:,j) = dPdRACPb1(:,j) + ...
                         ( zeta1*VNew(:,i)') * fac;
                     dPdRACPb2(:,j) = dPdRACPb2(:,j) + ...
@@ -36,11 +40,12 @@ else
     for j = 1:NsCell
         for nu = 1:select
             for l = 1:Npole
-                zeta1 = VNew(:,1:Nocc) * ((DNew(1:Nocc) - zshift(l)).\ (VNew(:,1:Nocc)'*RHSsel(:,nu)* hs));
-                zeta2 = VNew(:,Nocc+1:Ntot) * ((DNew(Nocc+1:Ntot) - zshift(l)).\ (VNew(:,Nocc+1:Ntot)'*RHSsel(:,nu)* hs));
+                zeta1 = VNew(:,1:Nocc) * zetatilde(1:Nocc,l,nu);
+                zeta2 = VNew(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,l,nu);
                 for i = 1:Nocc
-                    fac = gpfunc1(VNew(:,i),j,sel(nu)) * zweight(l)...
-                        / (zshift(l) - DNew(i));
+                    fac = (VNew(sel(nu),i).*gp(sel(nu),j) ...
+                        +(-1)*b(sel(nu),j)*bxV(j,i) + (-1)*bx(sel(nu),j)*bV(j,i))...
+                        * zweight(l)/ (zshift(l) - DNew(i));
                     drhodRACPb1(:,j) = drhodRACPb1(:,j) + ...
                         (conj(VNew(:,i)).* zeta1) * fac;
                     drhodRACPb2(:,j) = drhodRACPb2(:,j) + ...
