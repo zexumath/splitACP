@@ -2,7 +2,7 @@
 
 opt1D = initOptnlpp4m();
 
-for Natom = 4:2:12
+for Natom = 10:10:80
     opt1D.atom = initAtom1D(Natom);
     opt1D = initOptnlpp4m(opt1D);
     metaltest2;

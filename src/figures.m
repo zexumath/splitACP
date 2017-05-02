@@ -96,15 +96,15 @@ wysiwyg;
 FD = [];
 DFPT = [];
 ACP = [];
-for Natom = 4:2:12
+for Natom = 10:4:30
     resfilename = sprintf('../res/res0430/metal1Datom%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
-    DFPT(end+1) = DFPTtime.response;
-    ACP(end+1) = sACPtime.integral;
+    DFPT(end+1) = DFPTtime.total;
+    ACP(end+1) = sACPtime.total;
 end
 
-Natom = 4:2:12;
+Natom = 10:4:30;
 close all
 figure(1)
 loglog(Natom,DFPT,'b-o');

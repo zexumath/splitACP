@@ -146,8 +146,11 @@ if(1)
         end
     end
     
-    [drhodRbACPs] = generatew2(opt1D,bV,bxV,VNew,DNew,Nocc,zshift,zweight,gp,zetatildeb,selb);
     
+    W0 = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSselb,selb);
+    [drhodRbACPs] = generatew2(opt1D,bV,bxV,VNew,DNew,Nocc,zshift,zweight,zetatildeb,selb);
+    
+    drhodRbACPs = drhodRbACPs + W0*gp(selb,:);
     %
     
     sACPtime.singular = toc(singularstart);
@@ -208,9 +211,6 @@ if(1)
             zetatilde(:,l,nu) = ((DNew - zshift(l)).\ (VNew'*RHSsel(:,nu)* hs));
         end
     end
-    
-    
-    
     
     zeta = eqnsvsc + eqnsvb;
     testdPACPr = zeros(NsGrid,NsGrid,NsCell);
