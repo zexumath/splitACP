@@ -1,7 +1,7 @@
 function atom = initAtom1D(N)
 
 if nargin ==0
-    N = 4;
+    N = 30;
 end
 
 atom.NsCell = N;

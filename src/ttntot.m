@@ -16,6 +16,6 @@ for testratio = 0.9-0.1:0.2
     end
     errorACP(:,3)   = eigACP - eigDFPT;
     
-    resfilename = sprintf('./result041917/metal1Dratio%1.1s.mat',testratio);
+    resfilename = sprintf('../res/result052017/metal1Dratio%1.1s.mat',testratio);
     save(resfilename,'errorACP','eigDFPT','eigACP','DFPTtime','sACPtime');
 end
