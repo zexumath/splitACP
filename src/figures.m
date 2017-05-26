@@ -96,7 +96,7 @@ wysiwyg;
 FD = [];
 DFPT = [];
 ACP = [];
-for Natom = 10:4:30
+for Natom = 10:10:50
     resfilename = sprintf('../res/res0430/metal1Datom%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
@@ -104,7 +104,7 @@ for Natom = 10:4:30
     ACP(end+1) = sACPtime.total;
 end
 
-Natom = 10:4:30;
+Natom = 10:10:50;
 close all
 figure(1)
 loglog(Natom,DFPT,'b-o');
@@ -112,8 +112,8 @@ set(gca,'FontSize',20)
 hold on;
 loglog(Natom,ACP,'r-d');
 % loglog(Natom,CSss,'m-*');
-loglog(Natom,FD,'k-^');
-legend('DFPT','ACP','FD')
+% loglog(Natom,FD,'k-^');
+legend('DFPT','ACP')
 axis tight
 xlabel('System size: # of Atom','FontSize', 20)
 ylabel('Time (s) ','FontSize', 20);

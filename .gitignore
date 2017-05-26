@@ -1,2 +1,5 @@
 # ignore generated mat files,
 *.mat
+*.tar.gz
+*.eps
+
