@@ -58,7 +58,7 @@ ACPtimesingularscale = zeros(8,1);
 idx = 0;
 for testratio = 0.9:-0.1:0.2
     idx = idx +1;
-    resfilename = sprintf('./result041917/metal1Dratio%1.1s.mat',testratio);
+    resfilename = sprintf('../res//res052017/metal1Dratio%1.1s.mat',testratio);
     load(resfilename);
     
     errscale(idx,:)     = max(abs(errorACP));
