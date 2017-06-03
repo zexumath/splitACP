@@ -69,34 +69,34 @@ for testratio = 0.9:-0.1:0.2
 end
 
 figure(1)
-ratio = 0.9:-0.1:0.2;
+ratio = 1.9:-0.1:1.2 ;
 semilogy(ratio,errscale(:,1),'-o');
 set(gca,'FontSize',20)
 hold on
 semilogy(ratio,errscale(:,2),'-o');
 semilogy(ratio,errscale(:,3),'-o');
 legend('bare response','total response','phonon spectrum');
-xlabel('Nextra / Ne ratio','FontSize', 20)
+xlabel('$N^{(s)}_{\mathrm{cut}} / N_e$','Interpreter','latex','FontSize', 20)
 ylabel('Error','FontSize', 20);
 wysiwyg;
 
-figure(2)
-semilogy(ratio,DFPTtimescale,'-o');
-set(gca,'FontSize',20)
-hold on
-semilogy(ratio,ACPtimescale,'-o');
-semilogy(ratio,ACPtimesingularscale,'-o');
-semilogy(ratio,ACPtimeregularscale,'-o');
-legend('DFPTtime','ACPtime','ACPsingular','ACPregular');
-xlabel('Nextra / Ne ratio','FontSize', 20)
-ylabel('Time','FontSize', 20);
-wysiwyg;
+% figure(2)
+% semilogy(ratio,DFPTtimescale,'-o');
+% set(gca,'FontSize',20)
+% hold on
+% semilogy(ratio,ACPtimescale,'-o');
+% semilogy(ratio,ACPtimesingularscale,'-o');
+% semilogy(ratio,ACPtimeregularscale,'-o');
+% legend('DFPTtime','ACPtime','ACPsingular','ACPregular');
+% xlabel('Nextra / Ne ratio','FontSize', 20)
+% ylabel('Time','FontSize', 20);
+% wysiwyg;
 
 %% Time scale
 FD = [];
 DFPT = [];
 ACP = [];
-for Natom = 10:10:50
+for Natom = 10:10:80
     resfilename = sprintf('../res/res0430/metal1Datom%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
@@ -104,7 +104,7 @@ for Natom = 10:10:50
     ACP(end+1) = sACPtime.total;
 end
 
-Natom = 10:10:50;
+Natom = 10:10:80;
 close all
 figure(1)
 loglog(Natom,DFPT,'b-o');
@@ -112,8 +112,8 @@ set(gca,'FontSize',20)
 hold on;
 loglog(Natom,ACP,'r-d');
 % loglog(Natom,CSss,'m-*');
-% loglog(Natom,FD,'k-^');
-legend('DFPT','ACP')
+loglog(Natom,FD,'k-^');
+legend('DFPT','ACP','FD')
 axis tight
 xlabel('System size: # of Atom','FontSize', 20)
 ylabel('Time (s) ','FontSize', 20);

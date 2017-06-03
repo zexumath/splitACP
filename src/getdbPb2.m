@@ -18,10 +18,10 @@ for nu = 1:select
         continue
     else
         for l = 1:Npole
-            bzeta1  = bzetatilde( 1,I,l,nu);
-            bxzeta1 = bxzetatilde(1,I,l,nu);
-            bzeta2  = bzetatilde( 2,I,l,nu);
-            bxzeta2 = bxzetatilde(2,I,l,nu);
+            bzeta1  = bzetatilde( I,nu,l,1);
+            bxzeta1 = bxzetatilde(I,nu,l,1);
+            bzeta2  = bzetatilde( I,nu,l,2);
+            bxzeta2 = bxzetatilde(I,nu,l,2);
             for i = 1:Nocc
                 %             fac = (VNew(sel(nu),i)*gp(sel(nu),J) ...
                 %                 +(-1)*b(sel(nu),J)*bxV(J,i) + (-1)*bx(sel(nu),J)*bV(J,i))...
@@ -31,8 +31,8 @@ for nu = 1:select
                 fac = ((-1)*b(sel(nu),J)*bxV(J,i) + (-1)*bx(sel(nu),J)*bV(J,i))...
                     * zweight(l)/ (zshift(l) - DNew(i));
                 
-                W1(:,nu) = W1(:,nu) + ...
-                    bxzeta1 * bV(I,i) * fac - conj(bzeta1) * bxV(I,i)*conj(fac);
+%                 W1(:,nu) = W1(:,nu) + ...
+%                     bxzeta1 * bV(I,i) * fac - conj(bzeta1) * bxV(I,i)*conj(fac);
                 W2(:,nu) = W2(:,nu) + ...
                     bxzeta2 * bV(I,i) * fac - conj(bzeta2) * bxV(I,i)*conj(fac);
             end

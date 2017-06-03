@@ -66,8 +66,8 @@ for j = 1:NsCell
             continue
         else
             for l = 1:Npole
-                zeta1 = VNew(:,1:Nocc) * zetatilde(1:Nocc,l,nu);
-                zeta2 = VNew(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,l,nu);
+                zeta1 = VNew(:,1:Nocc) * zetatilde(1:Nocc,nu,l);
+                zeta2 = VNew(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,nu,l);
                 for i = 1:Nocc
                     fac = ((-1)*b(sel(nu),j)*bxV(j,i) + (-1)*bx(sel(nu),j)*bV(j,i))...
                         * zweight(l)/ (zshift(l) - DNew(i));

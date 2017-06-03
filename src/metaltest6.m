@@ -67,8 +67,8 @@ if(1)
     Tbeta       = temperature*3.166815d-6;
 
     
-    drhodRb  = zeros(NsGrid,NsCell);
-    drhodRbs = zeros(NsGrid,NsCell);
+%     drhodRb  = zeros(NsGrid,NsCell);
+%     drhodRbs = zeros(NsGrid,NsCell);
     drhodRbr = zeros(NsGrid,NsCell);
     global tmp0;
     global RELRES;
@@ -81,69 +81,36 @@ if(1)
         gfunc = @(x)gpfunc(x,i);
         drhodRbr(:,i) = adlerwiser1D4m(gfunc,HMatNew,DNew,Vocc,occ, QtProj,opt1D,i);
     end
-    
-    
-%     ita = zeros(NsGrid,Ntot^2);
-%     theta = zeros(NsGrid,Ntot^2,Ne);
-%     dd  = zeros(Ntot^2,1);
-%     DIM = 1;
-%     na = Ne;
-%     for i = 1:Ntot
-%         for j = 1:Ntot
-%             ita(:,i+(j-1)*Ntot) = conj(VNew(:,i)).*(VNew(:,j));
-%             for ia = 1:na
-%                 theta(:,i+(j-1)*Ntot,ia) = conj(VNew(:,j)).*gpfunc(VNew(:,i),ia);
-%             end
-%             if(abs(occ(i) - occ(j))>1e-8 ) 
-%                 dd(i+(j-1)*Ntot) = (occ(i) - occ(j))/(DNew(i) - DNew(j));
-%             else
-%                 dd(i+(j-1)*Ntot) = fermidiracderiv(DNew(i),efermi,Tbeta);
-%             end
-%         end
-%     end
-%     dd = dd / NsGrid * Ls;
-% 
-%     drhodRb1 = real(ita * diag(dd) * reshape(sum(theta,1),Ntot^2,na));
-%     
     eqnsvb = tmp0;
-    Npole = 60;
     
-    T       = opt1D.temperature;
-    Gap     = 0.0;
-    DeltaE  = 2.0;
-    mu      = efermi;
-    
-    
-    testdPs = zeros(NsGrid,NsGrid,NsCell);
-    
-    [zshift, zweight] = getpole(Npole, T, Gap, DeltaE, mu);
-    for j = 1:NsCell
-        res  = zeros(NsGrid, 1);
-        res3 = zeros(NsGrid, NsGrid);
-        for l = 1:Npole
-            Gl = @(x) VNew *(diag(DNew - zshift(l))\(VNew'*x))* hs;
-            tmp1 = zeros(NsGrid, 1);
-            tmp3 = zeros(NsGrid, NsGrid);
-            for i = 1:Ntot
-                tmp2 = gpfunc(VNew(:,i),j);
-                tmp1 = tmp1 + Gl( tmp2 ) / (zshift(l) - DNew(i)) .* conj(VNew(:,i));
-                tmp3 = tmp3 + Gl( tmp2 ) / (zshift(l) - DNew(i)) * VNew(:,i)';
+    ita = zeros(NsGrid,Ntot^2);
+    theta = zeros(NsGrid,Ntot^2,Ne);
+    dd  = zeros(Ntot^2,1);
+    DIM = 1;
+    na = Ne;
+    for i = 1:Ntot
+        for j = 1:Ntot
+            ita(:,i+(j-1)*Ntot) = conj(VNew(:,i)).*(VNew(:,j));
+            for ia = 1:na
+                theta(:,i+(j-1)*Ntot,ia) = conj(VNew(:,j)).*gpfunc(VNew(:,i),ia);
             end
-            res  = res  + zweight(l) * tmp1;
-            res3 = res3 + zweight(l) * tmp3;
+            if(abs(occ(i) - occ(j))>1e-8 ) 
+                dd(i+(j-1)*Ntot) = (occ(i) - occ(j))/(DNew(i) - DNew(j));
+            else
+                dd(i+(j-1)*Ntot) = fermidiracderiv(DNew(i),efermi,Tbeta);
+            end
         end
-        res  = 1/(2i)*(res-conj(res));
-        res3 = 1/(2i)*(res3-res3');
-        drhodRbs(:,j) = res;
-        testdPs(:,:,j) = res3;
     end
+    dd = dd / NsGrid * Ls;
+
+    drhodRbs = real(ita * diag(dd) * reshape(sum(theta,1),Ntot^2,na));
+    
     drhodRb = drhodRbs + drhodRbr;
     % Then solve equation drhodR = drhodRb + chi_0 v_c drhodR
-%     stop
     
     drhodR = zeros(NsGrid,NsCell);
     Cfunc = @(g,index) adlerwiser1D4m(@(x)g.*x, HMatNew, DNew, Vocc,occ, QtProj, opt1D,index);
-    Sfunc = @(g)       applychi0s2(opt1D,g, DNew,VNew,efermi,Npole);
+    Sfunc = @(g)       applychi0s1(opt1D,g, DNew,VNew,occ,efermi);
     GFUNC = @(g,index) Cfunc(cal_hartree1D(g, opt1D),index) + Sfunc(cal_hartree1D(g, opt1D));
     
     for j = 1:NsCell
@@ -160,39 +127,56 @@ if(1)
     fprintf('Time consumed for solving equations:\t %10.3g.\n',DFPTtime.response);
 end
 
+%%
 if(1)
     tic
+    Vcg = cal_hartree1D(drhodR, opt1D);
     
-    zeta = eqnsvsc + eqnsvb;
-    testdPr = zeros(NsGrid,NsGrid,NsCell);
-    for J = 1:NsCell
-        for i = 1:Nocc
-            testdPr(:,:,J) = testdPr(:,:,J) + occ(i) * VNew(:,i) * zeta(:,i,J)' ...
-                + occ(i) * zeta(:,i,J) * VNew(:,i)'; 
+    gpV  = zeros(NsGrid,Ntot,NsCell);
+    VgpV = zeros(Ntot,Ntot,NsCell);
+    for i = 1:Ntot
+        for J = 1:NsCell
+            gpV(:,i,J) = Vcg(:,J) .* VNew(:,i);
+            VgpV(:,i,J)  = hs * VNew' * gpV(:,i,J);
+        end
+    end 
+    
+    
+    
+    bV  = hs * b'  * VNew;
+    bxV = hs * bx' * VNew;
+    
+    AB = zeros(NsCell,Ntot^2);
+    for i = 1:Ntot
+        for a = 1:Ntot
+            AB(:,(i-1)*Ntot+a) = bV(:,a).*conj(bxV(:,i));
         end
     end
-end
-
-if(1)
-    Vcg = cal_hartree1D(drhodR, opt1D);
-    testdPs = real(testdPs + applychi0s3(opt1D,Vcg, DNew,VNew,efermi,Npole));
+    dd = dd / hs;
+    HessTTs = 2*(-1)*(AB * diag(dd))*reshape(VgpV,Ntot^2,NsCell);
+    
+    % singular part correct
+    
+    % regular part
+    
+    HessTTr = zeros(NsCell,NsCell);
+    
+    zeta = eqnsvsc + eqnsvb;
+    
+    for J = 1:NsCell
+        HessTTr(:,J) = 2*(-1) * ( ...
+         sum( (bV(:,1:Nocc)* diag(occ(1:Nocc))) .* conj(hs*bx' * zeta(:,:,J)),2 ) ...
+        +sum( (hs*b'*zeta(:,:,J)).* (conj(bxV(:,1:Nocc)) * diag(occ(1:Nocc))) , 2) );
+    end
     
     DFPTtime.constructDiag = toc;
 end
 %%
 if(1)
-    testdP = testdPr + testdPs;
     HessDFPT = zeros(NsCell,NsCell);
     for I = 1:NsCell
         for J = 1:NsCell
             HessDFPT(I,J) = HessDFPT(I,J) + sum(gpx(:,I).* drhodR(:,J))*hs;
-%             for i = 1:Ne
-%                 HessDFPT(I,J) = HessDFPT(I,J)...
-%                     + 2*(-1)*hs^2 * sum(VNew(:,i) .* bx(:,I)) * sum(zeta(:,i,J).* b(:,I));
-                
-%             end
-            HessDFPT(I,J) = HessDFPT(I,J)...
-                    + 2*(-1)* hs^2 * sum(sum(bx(:,I)' * testdP(:,:,J) * b(:,I)));
         end
         HessDFPT(I,I) = HessDFPT(I,I) + sum(rhoNew.*gpxx(:,I)) * hs;
         for i = 1:Nocc
@@ -201,6 +185,9 @@ if(1)
                 sum(VNew(:,i) .* bx(:, I)).^2 );
         end
     end
+    
+    HessDFPT = HessDFPT + HessTTr + HessTTs;
+    
     HessDFPT = (HessDFPT + HessDFPT') /2;
     HessDFPT = HessDFPT + HessII;
     DFPTtime.total = toc(DFPTstart);

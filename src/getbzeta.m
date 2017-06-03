@@ -4,19 +4,15 @@ NsCell = opt1D.atom.NsCell;
 Npole  = opt1D.Npole;
 
 
-bzetatilde  = zeros(2,NsCell,Npole,select);
-bxzetatilde = zeros(2,NsCell,Npole,select);
+bzetatilde  = zeros(NsCell,select,Npole,2);
+bxzetatilde = zeros(NsCell,select,Npole,2);
 
 
-for nu = 1:select
-    for l = 1:Npole
-        for I = 1:NsCell
-            bzetatilde(1, I, l, nu)     = bV(I,1:Nocc) * zetatilde(1:Nocc,l,nu);
-            bxzetatilde(1, I, l, nu)    = bxV(I,1:Nocc) * zetatilde(1:Nocc,l,nu);
-            bzetatilde(2, I, l, nu)     = bV(I,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,l,nu);
-            bxzetatilde(2, I, l, nu)    = bxV(I,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,l,nu);
-        end
-    end
+for l = 1:Npole
+    bzetatilde(:, :, l, 1)     = bV(:,1:Nocc) * zetatilde(1:Nocc,:,l);
+    bxzetatilde(:, :, l, 1)    = bxV(:,1:Nocc) * zetatilde(1:Nocc,:,l);
+    bzetatilde(:, :, l, 2)     = bV(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,:,l);
+    bxzetatilde(:, :, l, 2)    = bxV(:,Nocc+1:Ntot) * zetatilde(Nocc+1:Ntot,:,l);
 end
 
 end

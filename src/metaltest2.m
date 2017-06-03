@@ -1,7 +1,7 @@
 % This script implement the FD approach with nlpp term
 
 if(1)
-%     opt1D = initOptnlpp4m();
+    opt1D = initOptnlpp4m();
     atom = opt1D.atom;
     hs = opt1D.hs;
     Ls = opt1D.Ls;
