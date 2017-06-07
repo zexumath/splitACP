@@ -25,7 +25,7 @@ opt1D.alpha = 0.5;
 opt1D.temperature = 20000;
 
 opt1D.select = 12;
-opt1D.NeExtra = ceil(opt1D.Ne * 1.5); 
+opt1D.NeExtra = ceil(opt1D.Ne * 0.8); 
 % NeExtra relates to split representation.
 
 opt1D.GptGrid = (2*pi*[0:(opt1D.NsGrid)/2  -(opt1D.NsGrid)/2+1:-1]./opt1D.Ls)';
@@ -68,7 +68,7 @@ opt1D.mTotal0 = mTotal0;
 opt1D.mx = mx;
 opt1D.mxx = mxx;
 
-opt1D.Npole = 40;
+opt1D.Npole = 20;
 opt1D.NchebNodes = 4;
 opt1D.tau = 1e-4;
 opt1D.requiredeps = 1e-3;

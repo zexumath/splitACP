@@ -136,7 +136,7 @@ if(1)
     VgpV = zeros(Ntot,Ntot,NsCell);
     for i = 1:Ntot
         for J = 1:NsCell
-            gpV(:,i,J) = Vcg(:,J) .* VNew(:,i);
+            gpV(:,i,J) = gpfunc(VNew(:,i),J) + Vcg(:,J) .* VNew(:,i);
             VgpV(:,i,J)  = hs * VNew' * gpV(:,i,J);
         end
     end 
