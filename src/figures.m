@@ -31,17 +31,17 @@ ylabel('Difference on Response','Interpreter','latex','FontSize', 20);
 wysiwyg
 
 %% phonon spectrum
-eigsCS = eig(HessCS);
-eigsFD = eig(HessFD);
+eigsACP = eig(HessACP);
+eigsFD  = eig(HessFD);
 eigsDFPT = eig(HessDFPT);
 
-close all;sig = 0.01;
+close all;sig = 0.001;
 specplot(eigsDFPT,sig,[-10*sig,eigsDFPT(end)+10*sig],'b-',1.5);
 set(gca,'FontSize',20)
 hold on
-specplot(eigsCS,sig,[-10*sig,eigsDFPT(end)+10*sig],'ro',1);
+specplot(eigsACP,sig,[-10*sig,eigsDFPT(end)+10*sig],'ro',1);
 specplot(eigsFD,sig,[-10*sig,eigsDFPT(end)+10*sig],'k--',1.5);
-legend('DFPT','ACP','FD');
+legend('DFPT','split ACP','FD');
 xlabel('phonon frequency','FontSize', 20)
 ylabel('$\varrho_D$','Interpreter','latex','FontSize', 20);
 wysiwyg;

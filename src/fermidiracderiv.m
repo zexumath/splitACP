@@ -4,7 +4,7 @@ function f = fermidiracderiv(ev,efermi,Tbeta)
 %    with Fermi energy efermi, temperature Tbeta at energy ev. The
 %    Fermi-Dirac distribution is defined as follows,
 %       f(e) = \frac{1}{ exp{ (e-e_{Fermi})/T_{beta} } +1 }.
-%   
+%
 %    See also Molecule.
 
 %  Copyright (c) 2016-2017 Yingzhou Li and Chao Yang,
@@ -12,8 +12,11 @@ function f = fermidiracderiv(ev,efermi,Tbeta)
 %                          National Laboratory
 %  This file is distributed under the terms of the MIT License.
 
-f = -exp((ev-efermi)/Tbeta)/Tbeta ./(1+exp((ev-efermi)/Tbeta))^2;
-
+if Tbeta < 1e-8
+    f = zeros(size(ev));
+else
+    f = -exp((ev-efermi)/Tbeta)/Tbeta ./(1+exp((ev-efermi)/Tbeta))^2;
+end
 
 
 end
