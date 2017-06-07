@@ -27,6 +27,15 @@ function [zshift, zweight] = getpole( Npole, T, Gap, DeltaE, mu )
 %     Rho = Rho + imag( poleweight(i) * Result );
 %   end 
 %
+% ZX: MODIFICATION: Adding the case of zero temperature.
+
+if T==0
+    [zshift, zweight] = getpole0( 2*Npole, Gap, DeltaE, mu );
+    zshift = zshift(Npole+1:end);
+    zweight = zweight(Npole+1:end);
+    return
+end
+
 
 K2au = 3.166815d-6;
 au2K = 315774.67;

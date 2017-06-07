@@ -2,7 +2,7 @@
 
 opt1D = initOptnlpp4m();
 
-for Natom = 10:10:80
+for Natom = 10:10:30
     opt1D.atom = initAtom1D(Natom);
     opt1D = initOptnlpp4m(opt1D);
     metaltest2;
@@ -17,7 +17,7 @@ for Natom = 10:10:80
     errorFD  = zeros(opt1D.atom.NsCell,3);
     errorACP = zeros(opt1D.atom.NsCell,3);
     for I = 1:opt1D.atom.NsCell
-        errorFD(I,2)    = norm((rhoPerturbNew(:,I) - rho)/delta - drhodR(:,I));
+        errorFD(I,2)  = norm((rhoPerturbNew(:,I) - rho)/delta - drhodR(:,I));
         errorACP(I,1) = norm(drhodRbACP(:,I) - drhodRb(:,I));
         errorACP(I,2) = norm(drhodRACP(:,I)  - drhodR(:,I));
     end

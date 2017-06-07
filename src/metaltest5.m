@@ -115,7 +115,13 @@ if(1)
     
     Npole   = opt1D.Npole;
     T       = opt1D.temperature;
-    Gap     = 0.0;
+%     Gap     = 0.0;
+    if T>0
+        Gap = 0.0;
+    else
+        Gap = abs(DNew(opt1D.Ne) - efermi);
+    end
+    
     DeltaE  = max(2.0, DNew(end) - DNew(1));
     mu      = efermi;
     

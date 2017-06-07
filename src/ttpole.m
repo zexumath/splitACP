@@ -9,12 +9,17 @@
 % The unit of energy is hartree!
 
 opt1D = initOptnlpp4m();
+opt1D.temperature = 0;
 [rhoNew, VpotNew, DNew, VNew, occ, efermi, INDNew, HMatNew, iter,update] = metaltest1(opt1D);
 
-Npole    = 60;
+Npole    = 40;
 T        = opt1D.temperature;
-Gap      = 0.0;
-DeltaE   = 2.0; 
+if T>0
+        Gap = 0.0;
+    else
+        Gap = abs(DNew(opt1D.Ne) - efermi);
+    end
+DeltaE  = max(2.0, DNew(end) - DNew(1));
 
 mu       = efermi;
 
@@ -25,6 +30,7 @@ H = HMatNew(identity);
 H = (H + H')/2;
 Ev = DNew;
 
+hs = opt1D.hs;
 Hc      = VNew * diag(DNew) * VNew' * hs;
 Hc      = 1/2 * (Hc + Hc');
 

@@ -19,7 +19,7 @@ if Tbeta < eps
     occ = zeros(size(ev));
     occ(1:nocc) = 1;
     occ(idx) = occ;
-    efermi = ev(nocc);
+    efermi = (ev(nocc) + ev(nocc+1))/2;
     return;
 end
 
