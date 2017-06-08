@@ -1,5 +1,0 @@
-{Out of memory. Type HELP MEMORY for your options.
-
-Error in metaltest6 (line 87)
-    theta = zeros(NsGrid,Ntot^2,Ne);
-} 
