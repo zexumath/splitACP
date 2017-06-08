@@ -7,6 +7,11 @@ NsGrid  = opt1D.NsGrid;
 NsCell  = opt1D.atom.NsCell;
 Ntot    = length(DNew);
 
+if Ntot == Nocc
+    drhodRACPb = 0;
+    return
+end
+
 b       = opt1D.nlpp;
 bx      = opt1D.nlppx;
 

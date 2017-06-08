@@ -1,4 +1,4 @@
-% This script test on if chi_0 matches FD and ACP with nlpp term
+% This script test on the regular ACP scheme (w/o splitting).
 if(1)
 %     opt1D = initOptnlpp4m();
     atom = opt1D.atom;
@@ -38,6 +38,15 @@ if(1)
     end
     
     [rhoNew, VpotNew, DNew, VNew, occ,efermi, INDNew, HMatNew, iter,update] = metaltest1(opt1D);
+    opt1D.nosplit = 1;
+    
+    if (opt1D.nosplit ==1)
+        DNew = DNew(1:Ne);
+        VNew = VNew(:,1:Ne);
+        occ  = occ(1:Ne);
+        opt1D.NchebNodes = 30;
+    end
+    
     
     id = find(occ>1e-6);
     Nocc = length(id);
@@ -57,13 +66,13 @@ end
 %%
 if(1)
     % First compute drhob
-    spACPtime = struct;
-    spACPtime.colsel = 0;
-    spACPtime.soleqn = 0;
-    spACPtime.reconstruct = 0;
+    ACPtime = struct;
+    ACPtime.colsel = 0;
+    ACPtime.soleqn = 0;
+    ACPtime.reconstruct = 0;
     %     CStime.proj = 0;
-    spACPtime.iter = [];
-    spACPtime.total = 0;
+    ACPtime.iter = [];
+    ACPtime.total = 0;
     
     ACPstart = tic;
     
@@ -91,21 +100,21 @@ if(1)
         bV  = zeros(NsCell,Ntot);
         bxV = zeros(NsCell,Ntot);
         
-%         for I = 1:NsCell
-%             for i = 1:Ntot
-%                 bV(I,i)     = sum(b(:,I).*VNew(:,i))*hs;
-%                 bxV(I,i)    = sum(bx(:,I).*VNew(:,i))*hs;
-%             end
-%         end
+        %         for I = 1:NsCell
+        %             for i = 1:Ntot
+        %                 bV(I,i)     = sum(b(:,I).*VNew(:,i))*hs;
+        %                 bxV(I,i)    = sum(bx(:,I).*VNew(:,i))*hs;
+        %             end
+        %         end
         bV = b'*VNew*hs;
         bxV = bx'*VNew*hs;
     end
     
     %% compute drhodRbCSr
-    [RHSselb,selb, drhodRbACPr, CHI0gCStmp, W, PI,spACPtime,pivot,indrand,rphase,eqnresb,dpsib] = ...
-        compresschi01Dtest(opt1D,gpfunc,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,spACPtime);
+    [RHSselb,selb, drhodRbACPr, CHI0gCStmp, W, PI,ACPtime,pivot,indrand,rphase,eqnresb,dpsib] = ...
+        compresschi01Dtest(opt1D,gpfunc,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,ACPtime);
     selectb = length(selb);
-    spACPtime.regular = toc(ACPstart);
+    ACPtime.regular = toc(ACPstart);
     
     eqnsvb = dpsib;
     
@@ -115,7 +124,7 @@ if(1)
     
     Npole   = opt1D.Npole;
     T       = opt1D.temperature;
-%     Gap     = 0.0;
+    %     Gap     = 0.0;
     if T>0
         Gap = 0.0;
     else
@@ -152,57 +161,60 @@ if(1)
         zetatildeb(:,:,l) = (diag(DNew - zshift(l))\ (VNew'*RHSselb* hs));
     end
     
-    
-    W0 = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSselb,selb);
-    [drhodRbACPs] = generatew2(opt1D,bV,bxV,VNew,DNew,Nocc,zshift,zweight,zetatildeb,selb);
-    
-    drhodRbACPs = drhodRbACPs + W0*gp(selb,:);
+    if (opt1D.nosplit == 0)
+        W0 = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSselb,selb);
+        [drhodRbACPs] = generatew2(opt1D,bV,bxV,VNew,DNew,Nocc,zshift,zweight,zetatildeb,selb);
+        
+        drhodRbACPs = drhodRbACPs + W0*gp(selb,:);
+    else
+        drhodRbACPs = 0;
+    end
     %
     
-    spACPtime.singular = toc(singularstart);
+    ACPtime.singular = toc(singularstart);
     
-    drhodRbACPsp = drhodRbACPs + drhodRbACPr;
+    drhodRbACP = drhodRbACPs + drhodRbACPr;
     
-    spACPtime.iter(1) = toc(ACPstart);
+    ACPtime.iter(1) = toc(ACPstart);
     
     %% Then solve equation drhodR = drhodRb + chi_0 v_c drhodR
     Npole = opt1D.Npole;
     
     maxiterACP = 5;
-    drhodRACPspold = drhodRbACPsp;
-    Y0 = cal_hartree1D(drhodRbACPsp,opt1D);
+    drhodRACPold = drhodRbACP;
+    Y0 = cal_hartree1D(drhodRbACP,opt1D);
     
     for iter = 1:maxiterACP
         tmpstart = tic;
-        Y = cal_hartree1D(drhodRACPspold,opt1D);
+        Y = cal_hartree1D(drhodRACPold,opt1D);
         if(iter>1)
-            [sel, Wnew, PInew,spACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
+            [sel, Wnew, PInew,ACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
                 compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,...
-                spACPtime,pivot,indrand,rphase,select,eqnres);
+                ACPtime,pivot,indrand,rphase,select,eqnres);
         else
-            [sel, Wnew, PInew,spACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
-                compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,spACPtime);
+            [sel, Wnew, PInew,ACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
+                compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,ACPtime);
         end
         select = length(sel);
         
         Ws = generatew3(opt1D,VNew,DNew,Nocc,zshift,zweight,RHSsel,sel);
         Wtot = Wnew + Ws;
-        drhodRACPsp = drhodRbACPsp + Wtot * ...
+        drhodRACP = drhodRbACP + Wtot * ...
             ( (eye(length(sel)) - PInew(cal_hartree1D(Wtot,opt1D)))\...
             PInew(Y0));
         
-        errnrm = norm(drhodRACPsp - drhodRACPspold)./norm(drhodRACPspold);
+        errnrm = norm(drhodRACP - drhodRACPold)./norm(drhodRACPold);
         fprintf('iter = %d,\t||CHIgCSnew1 - CHIgCSnew||_2\t= %3.15f \n',iter,errnrm);
         if errnrm < opt1D.requiredeps
             break;
         end
-        drhodRACPspold = drhodRACPsp;
-        spACPtime.iter(iter+1) = toc(tmpstart);
+        drhodRACPold = drhodRACP;
+        ACPtime.iter(iter+1) = toc(tmpstart);
     end
     eqnsvsc = dpsisc;
     
-    spACPtime.response = toc(ACPstart);
-    fprintf('Time consumed for solving Dyson equations:\t %10.3g.\n',spACPtime.response);
+    ACPtime.response = toc(ACPstart);
+    fprintf('Time consumed for solving Dyson equations:\t %10.3g.\n',ACPtime.response);
 end
 
 %%
@@ -215,7 +227,7 @@ if(1)
     for l = 1:Npole
         zetatilde(:,:,l) = (diag(DNew - zshift(l))\ (VNew'*RHSsel* hs));
     end
-
+    
     % first deal with regular part.
     
     HessTTreg = zeros(NsCell,NsCell);
@@ -269,7 +281,7 @@ if(1)
     
     HessTTreg1 = (HessTTreg1 + HessTTreg1')/2;
     
-    Vcg = cal_hartree1D(drhodRACPsp, opt1D);
+    Vcg = cal_hartree1D(drhodRACP, opt1D);
     
     bxzeta = zeros(NsCell,select,NchebNodes);
     bzeta  = zeros(NsCell,select,NchebNodes);
@@ -292,48 +304,49 @@ if(1)
     
     % then singular part
     HessTTsing = zeros(NsCell,NsCell);
-
-    ETTs = 1./(-repmat(DNew(1:Nocc),1,Npole) + repmat(conj(zshift'),Nocc,1));
     
-    ETTs = ETTs*diag(zweight);
-    [bzetatildebare, bxzetatildebare] = getbzeta(opt1D,bV,bxV,Nocc,Ntot,zetatildeb,selectb);
-    
-    for l = 1:Npole
+    if (opt1D.nosplit == 0)
+        ETTs = 1./(-repmat(DNew(1:Nocc),1,Npole) + repmat(conj(zshift'),Nocc,1));
         
-%         (3.13) line three
+        ETTs = ETTs*diag(zweight);
+        [bzetatildebare, bxzetatildebare] = getbzeta(opt1D,bV,bxV,Nocc,Ntot,zetatildeb,selectb);
         
-        AEB1 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bxV(:,1:Nocc)');
-        CD1  = (-1)* bzetatildebare(:,:,l,1) * b(selb,:);
-        AEB2 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bV(:,1:Nocc)');
-        CD2  = (-1)* bzetatildebare(:,:,l,1) * bx(selb,:);
-        
-        AEB3 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bxV(:,1:Nocc)');
-        CD3  = (-1)* conj(bxzetatildebare(:,:,l,1)) * b(selb,:);
-        AEB4 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bV(:,1:Nocc)');
-        CD4  = (-1)* conj(bxzetatildebare(:,:,l,1)) * bx(selb,:);
-        
-        HessTTsing = HessTTsing + 1/(2i)* 2*(-1)* ...
-            (AEB1.*CD1 + AEB2.*CD2 + AEB3.*CD3 + AEB4.*CD4 );
-        
-%         (3.13) line two with h.c. included
-        
-        AEB1 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bxV(:,1:Nocc)');
-        CD1  = (-1)* bzetatildebare(:,:,l,2) * b(selb,:);
-        AEB2 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bV(:,1:Nocc)');
-        CD2  = (-1)* bzetatildebare(:,:,l,2) * bx(selb,:);
-        
-        AEB3 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bxV(:,1:Nocc)');
-        CD3  = (-1)* conj(bxzetatildebare(:,:,l,2)) * b(selb,:);
-        AEB4 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bV(:,1:Nocc)');
-        CD4  = (-1)* conj(bxzetatildebare(:,:,l,2)) * bx(selb,:);
-        
-        HessTTsing = HessTTsing +  2*(-1)* ...
-            imag((AEB1.*CD1 + AEB2.*CD2 + AEB3.*CD3 + AEB4.*CD4 ) );
-        
-%         correct
+        for l = 1:Npole
+            
+            %         (3.13) line three
+            
+            AEB1 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bxV(:,1:Nocc)');
+            CD1  = (-1)* bzetatildebare(:,:,l,1) * b(selb,:);
+            AEB2 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bV(:,1:Nocc)');
+            CD2  = (-1)* bzetatildebare(:,:,l,1) * bx(selb,:);
+            
+            AEB3 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bxV(:,1:Nocc)');
+            CD3  = (-1)* conj(bxzetatildebare(:,:,l,1)) * b(selb,:);
+            AEB4 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bV(:,1:Nocc)');
+            CD4  = (-1)* conj(bxzetatildebare(:,:,l,1)) * bx(selb,:);
+            
+            HessTTsing = HessTTsing + 1/(2i)* 2*(-1)* ...
+                (AEB1.*CD1 + AEB2.*CD2 + AEB3.*CD3 + AEB4.*CD4 );
+            
+            %         (3.13) line two with h.c. included
+            
+            AEB1 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bxV(:,1:Nocc)');
+            CD1  = (-1)* bzetatildebare(:,:,l,2) * b(selb,:);
+            AEB2 = bxV(:,1:Nocc)* (repmat(ETTs(:,l),1,NsCell).*bV(:,1:Nocc)');
+            CD2  = (-1)* bzetatildebare(:,:,l,2) * bx(selb,:);
+            
+            AEB3 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bxV(:,1:Nocc)');
+            CD3  = (-1)* conj(bxzetatildebare(:,:,l,2)) * b(selb,:);
+            AEB4 = bV(:,1:Nocc) * (repmat(-conj(ETTs(:,l)),1,NsCell).*bV(:,1:Nocc)');
+            CD4  = (-1)* conj(bxzetatildebare(:,:,l,2)) * bx(selb,:);
+            
+            HessTTsing = HessTTsing +  2*(-1)* ...
+                imag((AEB1.*CD1 + AEB2.*CD2 + AEB3.*CD3 + AEB4.*CD4 ) );
+            
+            %         correct
+        end
+        HessTTsing = real(HessTTsing + HessTTsing')/2;
     end
-    HessTTsing = real(HessTTsing + HessTTsing')/2;
-    
     
     [bzetatilde, bxzetatilde] = getbzeta(opt1D,bV,bxV,Nocc,Ntot,zetatilde,select);
     [bzetatildeb, bxzetatildeb] = getbzeta(opt1D,bV,bxV,Nocc,Ntot,zetatildeb,selectb);
@@ -343,7 +356,7 @@ if(1)
         WVcg = getdbPb1(opt1D,bV,bxV,I,DNew,VNew,Nocc,zshift,zweight,bzetatilde, bxzetatilde,sel);
         Wb   = getdbPb1(opt1D,bV,bxV,I,DNew,VNew,Nocc,zshift,zweight,bzetatildeb, bxzetatildeb,selb);
         for J = 1:NsCell
-            HessEasy(I,J) = HessEasy(I,J) + sum(gpx(:,I).* drhodRACPsp(:,J))*hs;
+            HessEasy(I,J) = HessEasy(I,J) + sum(gpx(:,I).* drhodRACP(:,J))*hs;
             HessEasy(I,J) = HessEasy(I,J)...
                 + 2*(-1) * WVcg * Vcg(sel,J)...
                 + 2*(-1) * Wb   * gp(selb,J) ;
@@ -356,10 +369,10 @@ if(1)
         end
     end
     HessEasy = (HessEasy + HessEasy') /2;
-    HessACPsp = HessEasy + HessTTreg + HessTTreg1 + HessTTreg2 + HessTTsing + HessII;
+    HessACP = HessEasy + HessTTreg + HessTTreg1 + HessTTreg2 + HessTTsing + HessII;
     
-    spACPtime.integral = toc;
-    spACPtime.total = toc(ACPstart);
+    ACPtime.integral = toc;
+    ACPtime.total = toc(ACPstart);
 end
 
 

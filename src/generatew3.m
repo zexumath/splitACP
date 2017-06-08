@@ -5,7 +5,11 @@ hs      = opt1D.hs;
 select  = length(sel);
 NsGrid  = opt1D.NsGrid;
 Ntot    = length(DNew);
-
+if Nocc == Ntot
+    W=0;
+    Wmat = 0;
+    return 
+end
 
 if nargout ==2
     Wmat1 = zeros(NsGrid,NsGrid,select);

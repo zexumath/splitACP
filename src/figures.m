@@ -1,3 +1,29 @@
+%% eigenvalues / gap
+Ne = opt1D.Ne;
+numocc = 1:Ne;
+close all
+plot(numocc,DNew(numocc),'bo')
+set(gca,'FontSize',20)
+hold on
+numunocc = Ne+1:Ne+opt1D.NeExtra;
+plot(numunocc,DNew(numunocc),'rd')
+axis tight
+legend('occupied','unoccupied')
+xlabel('index($i$)','Interpreter','latex','FontSize', 20)
+ylabel('$\varepsilon_i$','Interpreter','latex','FontSize', 20)
+wysiwyg;
+
+%% electron density
+
+xgrid = (0:opt1D.NsGrid-1)*opt1D.hs;
+plotregion = 10/opt1D.atom.NsCell * opt1D.NsGrid;
+close all
+plot(xgrid(1:plotregion),rhoNew(1:plotregion),'b-','Linewidth',1);
+set(gca,'FontSize',20)
+xlabel('$x$','Interpreter','latex','FontSize', 20)
+ylabel('$\rho(x)$','Interpreter','latex','FontSize', 20)
+wysiwyg;
+% axis tight
 
 %% \delta \rho
 close all

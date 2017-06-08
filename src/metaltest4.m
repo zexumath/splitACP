@@ -57,13 +57,13 @@ end
 %%
 if(1)
     % First compute drhob
-    sACPtime = struct;
-    sACPtime.colsel = 0;
-    sACPtime.soleqn = 0;
-    sACPtime.reconstruct = 0;
+    spACPtime = struct;
+    spACPtime.colsel = 0;
+    spACPtime.soleqn = 0;
+    spACPtime.reconstruct = 0;
     %     CStime.proj = 0;
-    sACPtime.iter = [];
-    sACPtime.total = 0;
+    spACPtime.iter = [];
+    spACPtime.total = 0;
     
     ACPstart = tic;
     
@@ -102,10 +102,10 @@ if(1)
     end
     
     %% compute drhodRbCSr
-    [RHSselb,selb, drhodRbACPr, CHI0gCStmp, W, PI,sACPtime,pivot,indrand,rphase,eqnresb,dpsib] = ...
-        compresschi01Dtest(opt1D,gpfunc,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,sACPtime);
+    [RHSselb,selb, drhodRbACPr, CHI0gCStmp, W, PI,spACPtime,pivot,indrand,rphase,eqnresb,dpsib] = ...
+        compresschi01Dtest(opt1D,gpfunc,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,spACPtime);
     selectb = length(selb);
-    sACPtime.regular = toc(ACPstart);
+    spACPtime.regular = toc(ACPstart);
     
     eqnsvb = dpsib;
     
@@ -153,11 +153,11 @@ if(1)
     drhodRbACPs = drhodRbACPs + W0*gp(selb,:);
     %
     
-    sACPtime.singular = toc(singularstart);
+    spACPtime.singular = toc(singularstart);
     
     drhodRbACP = drhodRbACPs + drhodRbACPr;
     
-    sACPtime.iter(1) = toc(ACPstart);
+    spACPtime.iter(1) = toc(ACPstart);
     
     %% Then solve equation drhodR = drhodRb + chi_0 v_c drhodR
     Npole = opt1D.Npole;
@@ -170,12 +170,12 @@ if(1)
         tmpstart = tic;
         Y = cal_hartree1D(drhodRACPold,opt1D);
         if(iter>1)
-            [sel, Wnew, PInew,sACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
+            [sel, Wnew, PInew,spACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
                 compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,...
-                sACPtime,pivot,indrand,rphase,select,eqnres);
+                spACPtime,pivot,indrand,rphase,select,eqnres);
         else
-            [sel, Wnew, PInew,sACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
-                compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,sACPtime);
+            [sel, Wnew, PInew,spACPtime,pivot,indrand,rphase,eqnres,dpsisc,RHSsel] = ...
+                compresschi01Dr(opt1D,Y,Vocc,occ,DNew,HMatNew,QtProj,NchebNodes,spACPtime);
         end
         select = length(sel);
         
@@ -191,12 +191,12 @@ if(1)
             break;
         end
         drhodRACPold = drhodRACP;
-        sACPtime.iter(iter+1) = toc(tmpstart);
+        spACPtime.iter(iter+1) = toc(tmpstart);
     end
     eqnsvsc = dpsisc;
     
-    sACPtime.response = toc(ACPstart);
-    fprintf('Time consumed for solving Dyson equations:\t %10.3g.\n',sACPtime.response);
+    spACPtime.response = toc(ACPstart);
+    fprintf('Time consumed for solving Dyson equations:\t %10.3g.\n',spACPtime.response);
 end
 
 %%
@@ -272,7 +272,7 @@ if(1)
 %     
 %     
 %     
-    sACPtime.constructDiag = toc(constructDiagStart);
+    spACPtime.constructDiag = toc(constructDiagStart);
 end
 
 
@@ -285,20 +285,20 @@ if(1)
     [bzetatildebare, bxzetatildebare] = getbzeta(opt1D,bV,bxV,Nocc,Ntot,zetatildeb,selectb);
     
     
-    HessACP = zeros(NsCell,NsCell);
+    HessspACP = zeros(NsCell,NsCell);
     for I = 1:NsCell
         WVcg = getdbPb1(opt1D,bV,bxV,I,DNew,VNew,Nocc,zshift,zweight,bzetatilde, bxzetatilde,sel);
         Wb   = getdbPb1(opt1D,bV,bxV,I,DNew,VNew,Nocc,zshift,zweight,bzetatildebare,bxzetatildebare,selb);
         for J = 1:NsCell
-            HessACP(I,J) = HessACP(I,J) + sum(gpx(:,I).* drhodRACP(:,J))*hs;
+            HessspACP(I,J) = HessspACP(I,J) + sum(gpx(:,I).* drhodRACP(:,J))*hs;
             %             for i = 1:Ne
             %                 HessDFPT(I,J) = HessDFPT(I,J)...
             %                     + 2*(-1)*hs^2 * sum(VNew(:,i) .* bx(:,I)) * sum(zeta(:,i,J).* b(:,I));
             
             %             end
-            HessACP(I,J) = HessACP(I,J)...
+            HessspACP(I,J) = HessspACP(I,J)...
                 + 2*(-1)* hs^2 * sum(sum(bx(:,I)' * (testdPACPr(:,:,J) * b(:,I))));
-            HessACP(I,J) = HessACP(I,J)...
+            HessspACP(I,J) = HessspACP(I,J)...
                 + 2*(-1) * WVcg * Vcg(sel,J)...
                 + 2*(-1) * Wb   * gp(selb,J) ...
                 + 2*(-1) * getdbPb2(opt1D,bV,bxV,I,J,DNew,VNew,Nocc,zshift,zweight,bzetatildebare, bxzetatildebare,selb);
@@ -306,18 +306,18 @@ if(1)
             
             
         end
-        HessACP(I,I) = HessACP(I,I) + sum(rhoNew.*gpxx(:,I)) * hs;
+        HessspACP(I,I) = HessspACP(I,I) + sum(rhoNew.*gpxx(:,I)) * hs;
         for i = 1:Nocc
-            HessACP(I,I) = HessACP(I,I) + 2*(-1) * occ(i)* hs^2 * ( ...
+            HessspACP(I,I) = HessspACP(I,I) + 2*(-1) * occ(i)* hs^2 * ( ...
                 sum(VNew(:,i) .* bxx(:,I)) * sum(VNew(:,i).*b( :,I)) + ...
                 sum(VNew(:,i) .* bx(:, I)).^2 );
         end
     end
-    HessACP = (HessACP + HessACP') /2;
-    HessACP = HessACP + HessII;
+    HessspACP = (HessspACP + HessspACP') /2;
+    HessspACP = HessspACP + HessII;
     
-    sACPtime.integral = toc;
-    sACPtime.total = toc(ACPstart);
+    spACPtime.integral = toc;
+    spACPtime.total = toc(ACPstart);
 end
 
 
