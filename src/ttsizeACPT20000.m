@@ -2,10 +2,10 @@
 
 opt1D = initOptnlpp4m();
 
-for Natom = 10:10:100
+for Natom = 10:10:80
     opt1D.atom = initAtom1D(Natom);
     opt1D = initOptnlpp4m(opt1D);
-    opt1D.temperature = 20000;
+%     opt1D.temperature = 20000;
     metaltest2;
     metaltest5;
     metaltest6;

@@ -57,16 +57,16 @@ ylabel('Difference on Response','Interpreter','latex','FontSize', 20);
 wysiwyg
 
 %% phonon spectrum
-eigsACP = eig(HessACP);
-eigsFD  = eig(HessFD);
-eigsDFPT = eig(HessDFPT);
+% eigACPsp = eig(HessACPsp);
+% eigFD  = eig(HessFD);
+% eigDFPT = eig(HessDFPT);
 
-close all;sig = 0.001;
-specplot(eigsDFPT,sig,[-10*sig,eigsDFPT(end)+10*sig],'b-',1.5);
+close all;sig = 0.002;
+specplot(eigDFPT,sig,[-10*sig,eigDFPT(end)+10*sig],'b-',1.5);
 set(gca,'FontSize',20)
 hold on
-specplot(eigsACP,sig,[-10*sig,eigsDFPT(end)+10*sig],'ro',1);
-specplot(eigsFD,sig,[-10*sig,eigsDFPT(end)+10*sig],'k--',1.5);
+specplot(eigACPsp,sig,[-10*sig,eigDFPT(end)+10*sig],'ro',1);
+specplot(eigFD,sig,[-10*sig,eigDFPT(end)+10*sig],'k--',1.5);
 legend('DFPT','split ACP','FD');
 xlabel('phonon frequency','FontSize', 20)
 ylabel('$\varrho_D$','Interpreter','latex','FontSize', 20);
@@ -121,25 +121,27 @@ wysiwyg;
 %% Time scale
 FD = [];
 DFPT = [];
-ACP = [];
-for Natom = 10:10:30
-    resfilename = sprintf('../res/res060317/metal1Datom%d.mat',Natom);
+% ACP = [];
+spACP = [];
+for Natom = 10:10:80
+    resfilename = sprintf('../res/res060717/metal1DT20000-%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
     DFPT(end+1) = DFPTtime.total;
-    ACP(end+1) = sACPtime.total;
+    spACP(end+1) = spACPtime.total;
+%     ACP(end+1) = ACPtime.total;
 end
 
-Natom = 10:10:30;
+Natom = 10:10:80;
 close all
 figure(1)
 loglog(Natom,DFPT,'b-o');
 set(gca,'FontSize',20)
 hold on;
-loglog(Natom,ACP,'r-d');
-% loglog(Natom,CSss,'m-*');
+% loglog(Natom,ACP,'r-d');
+loglog(Natom,spACP,'m-*');
 loglog(Natom,FD,'k-^');
-legend('DFPT','ACP','FD')
+legend('DFPT','split ACP','FD')
 axis tight
 xlabel('System size: # of Atom','FontSize', 20)
 ylabel('Time (s) ','FontSize', 20);
