@@ -38,6 +38,10 @@ if(1)
     end
     
     [rhoNew, VpotNew, DNew, VNew, occ,efermi, INDNew, HMatNew, iter,update] = metaltest1(opt1D);
+    if (occ(end)>1e-6)
+        fprintf('WARNING: Not enough bands computed!\n');
+        stop
+    end
     
     id = find(occ>1e-6);
     Nocc = length(id);

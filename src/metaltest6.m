@@ -84,15 +84,15 @@ if(1)
     eqnsvb = tmp0;
     
     ita = zeros(NsGrid,Ntot^2);
-    theta = zeros(NsGrid,Ntot^2,Ne);
+    theta = zeros(Ntot^2,NsCell);
     dd  = zeros(Ntot^2,1);
     DIM = 1;
-    na = Ne;
+    na = NsCell;
     for i = 1:Ntot
         for j = 1:Ntot
             ita(:,i+(j-1)*Ntot) = conj(VNew(:,i)).*(VNew(:,j));
             for ia = 1:na
-                theta(:,i+(j-1)*Ntot,ia) = conj(VNew(:,j)).*gpfunc(VNew(:,i),ia);
+                theta(i+(j-1)*Ntot,ia) = hs*VNew(:,j)'*gpfunc(VNew(:,i),ia);
             end
             if(abs(occ(i) - occ(j))>1e-8 ) 
                 dd(i+(j-1)*Ntot) = (occ(i) - occ(j))/(DNew(i) - DNew(j));
@@ -101,9 +101,9 @@ if(1)
             end
         end
     end
-    dd = dd / NsGrid * Ls;
+    
 
-    drhodRbs = real(ita * diag(dd) * reshape(sum(theta,1),Ntot^2,na));
+    drhodRbs = real(ita * diag(dd) * theta);
     
     drhodRb = drhodRbs + drhodRbr;
     % Then solve equation drhodR = drhodRb + chi_0 v_c drhodR
@@ -152,7 +152,7 @@ if(1)
             AB(:,(i-1)*Ntot+a) = bV(:,a).*conj(bxV(:,i));
         end
     end
-    dd = dd / hs;
+    
     HessTTs = 2*(-1)*(AB * diag(dd))*reshape(VgpV,Ntot^2,NsCell);
     
     % singular part correct

@@ -124,7 +124,7 @@ DFPT = [];
 % ACP = [];
 spACP = [];
 for Natom = 10:10:80
-    resfilename = sprintf('../res/res060717/metal1DT20000-%d.mat',Natom);
+    resfilename = sprintf('../res/res060717/metal1DT0-%d.mat',Natom);
     load(resfilename);
     FD(end+1) = FDtime;
     DFPT(end+1) = DFPTtime.total;
