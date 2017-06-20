@@ -22,3 +22,5 @@ for inp = 1:6
         errNpNtot(inp,intot) = max(abs(errorACPsp(:,3)));
     end
 end
+
+save('../res/res062017/errNpNtot.mat','opt1D','Ntottest','Nptest','errNpNtot');
