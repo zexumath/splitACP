@@ -22,7 +22,7 @@ opt1D.itermaxite = 400;
 opt1D.pcgtol = 1e-6;
 opt1D.alpha = 0.5;
 
-opt1D.temperature = 0;
+opt1D.temperature = 20000;
 
 opt1D.select = 12;
 opt1D.NeExtra = ceil(opt1D.Ne * 0.8); 
