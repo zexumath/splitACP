@@ -121,7 +121,7 @@ wysiwyg;
 %% Time scale
 FD = [];
 DFPT = [];
-% ACP = [];
+ACP = [];
 spACP = [];
 for Natom = 10:10:80
     resfilename = sprintf('../res/res060717/metal1DT0-%d.mat',Natom);
@@ -129,7 +129,7 @@ for Natom = 10:10:80
     FD(end+1) = FDtime;
     DFPT(end+1) = DFPTtime.total;
     spACP(end+1) = spACPtime.total;
-%     ACP(end+1) = ACPtime.total;
+    ACP(end+1) = ACPtime.total;
 end
 
 Natom = 10:10:80;
@@ -138,10 +138,10 @@ figure(1)
 loglog(Natom,DFPT,'b-o');
 set(gca,'FontSize',20)
 hold on;
-% loglog(Natom,ACP,'r-d');
-loglog(Natom,spACP,'m-*');
 loglog(Natom,FD,'k-^');
-legend('DFPT','split ACP','FD')
+loglog(Natom,spACP,'m-*');
+loglog(Natom,ACP,'r-d');
+legend('DFPT','FD','split ACP','ACP','Location','NorthWest')
 axis tight
 xlabel('System size: # of Atom','FontSize', 20)
 ylabel('Time (s) ','FontSize', 20);
